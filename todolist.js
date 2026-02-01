@@ -67,8 +67,8 @@ async function main() {
         
         switch (menu) {
             case "1":
-                const category = await question("Enter task category: ");
-                const task = await question("Enter task description: ");
+                const category = await question("Enter task category\n--> ");
+                const task = await question("Enter task description\n--> ");
                 addTask(category, task);
                 console.log("Task added successfully!");
                 await sleep(1000);
@@ -76,7 +76,7 @@ async function main() {
                 break;
                 
             case "2":
-                const categoryToDelete = await question("Enter task category to delete: ");
+                const categoryToDelete = await question("Enter task category to delete\n--> ");
                 deleteTask(categoryToDelete);
                 await sleep(1000);
                 clearTerminalScreen();
