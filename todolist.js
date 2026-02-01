@@ -1,60 +1,107 @@
-// This file contains JS functions related to a to do list 
+// This file is a JavaScript file intended to manage a simple to-do list application with node.js
+
+// This module allows us to take input from the user via the terminal for node.js
+const readline = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const rl = readline;
+
+// Promisify readline.question for async/await usage
+function question(prompt) {
+    return new Promise(resolve => rl.question(prompt, resolve));
+}
 
 // This function will clear the terminal screen
 function clearTerminalScreen() {
     console.clear();
 }
 
-// This function will pause execution for a given number of seconds
-function timesleep(seconds) {
-    const start = Date.now();
-    let now = null;
-    do {
-        now = Date.now();
-    } while (now - start < seconds * 1000);
+// This function will pause execution for a given number of milliseconds
+function sleep(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-// initialise an empty array to hold the tasks
-tasks = [];
+// Initialize an empty array to hold the tasks
+const tasks = [];
 
-function addTask(category,task) {
-    tasks.push({category: category, task: task});
+function addTask(category, task) {
+    tasks.push({ category: category, task: task });
 }
 
 function deleteTask(category) {
-    tasks = tasks.filter(task => task.category !== category);
-}
-
-function fetchTasks() {
-    console.log(tasks);
-}
-
-// Initialise the menu variable
-menu = 0;    
-
-/* The following while loop will keep running 
-until the user selects exactly the values of 
-1, 2 or 3 from the prompt */
-while (menu != 1 && menu != 2 && menu != 3 && menu != 4) { 
-    menu = prompt("Select an option:\n1. Add Task\n2. Delete Task\n3. View Tasks\n4. Exit\n--> ");
-    if (menu == 1) {
-        category = prompt("Enter task category: ");
-        task = prompt("Enter task description: ");
-        addTask(category,task);
-    } else if (menu == 2) {
-        category = prompt("Enter task category to delete: ");
-        deleteTask(category);
-    } else if (menu == 3) {
-        fetchTasks();
-    } else if (menu == 4) {
-        alert("Exiting the to-do list application.");
-        timesleep(2);
-        clearTerminalScreen();
-        break;
+    const initialLength = tasks.length;
+    const filtered = tasks.filter(t => t.category !== category);
+    tasks.length = 0;
+    tasks.push(...filtered);
+    
+    if (filtered.length === initialLength) {
+        console.log(`No tasks found with category: ${category}`);
     } else {
-        alert("Invalid option. Please try again.");
-        timesleep(2);
-        clearTerminalScreen();
+        console.log(`Deleted task(s) from category: ${category}`);
     }
 }
+
+async function fetchTasks() {
+    if (tasks.length === 0) {
+        console.log("No tasks to display.");
+    } else {
+        console.log("\n--- Your Tasks ---");
+        tasks.forEach((t, index) => {
+            console.log(`${index + 1}. [${t.category}] ${t.task}`);
+        });
+        console.log("------------------\n");
+    }
+    
+    await question("Press Enter to continue...");
+    clearTerminalScreen();
+}
+
+// Main application loop
+async function main() {
+    let continueApp = true;
+    
+    while (continueApp) {
+        let menu = await question("Select an option:\n1. Add Task\n2. Delete Task\n3. View Tasks\n4. Exit\n--> ");
+        
+        switch (menu) {
+            case "1":
+                const category = await question("Enter task category: ");
+                const task = await question("Enter task description: ");
+                addTask(category, task);
+                console.log("Task added successfully!");
+                await sleep(1000);
+                clearTerminalScreen();
+                break;
+                
+            case "2":
+                const categoryToDelete = await question("Enter task category to delete: ");
+                deleteTask(categoryToDelete);
+                await sleep(1000);
+                clearTerminalScreen();
+                break;
+                
+            case "3":
+                await fetchTasks();
+                break;
+                
+            case "4":
+                console.log("Exiting the to-do list application.");
+                await sleep(1000);
+                clearTerminalScreen();
+                continueApp = false;
+                rl.close();
+                break;
+                
+            default:
+                console.log("Invalid option. Please try again.");
+                await sleep(1000);
+                clearTerminalScreen();
+        }
+    }
+}
+
+// Start the application
+main();
 
